@@ -44,7 +44,7 @@ class IRCConnection:
         # set default values
         self.debug = False
         self.status = False
-        self.autoconnect = True
+        self.autoreconnect = True
         self.timeout = 5
         
         # pull in nick/user/name from the function
@@ -59,15 +59,15 @@ class IRCConnection:
             self.name = nick
 
         # set up default events
-        self.on_connect = []
-        self.on_disconnect = []
-        self.on_public_message = []
-        self.on_private_message = []
-        self.on_ping = []
-        self.on_welcome = []
-        self.on_packet_received = []
-        self.on_join = []
-        self.on_leave = []
+        self.on_packet_received = [];   # when a packet is received
+        self.on_connect = [];           # when the socket connects to the server
+        self.on_disconnect = [];        # when the socket disconnects from the server
+        self.on_text = [];              # when someone messages a channel
+        self.on_query = [];             # when someone messages the bot
+        self.on_ping = [];              # when the server sends ping
+        self.on_welcome = [];           # when the server shows the client as connected
+        self.on_join = [];              # when someone joins a channel
+        self.on_part = [];              # when someone parts a channel
 
     def run_once(self):
         packet = parse_irc_packet(next(self.lines)) #Get next line from generator
@@ -77,10 +77,10 @@ class IRCConnection:
 
         if packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
-                for event_handler in list(self.on_public_message):
+                for event_handler in list(self.on_text):
                     event_handler(self, packet.arguments[0], packet.prefix.split("!")[0], packet.arguments[1])
             else:
-                for event_handler in list(self.on_private_message):
+                for event_handler in list(self.on_query):
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
         elif packet.command == "PING":
             self.send_line("PONG :{}".format(packet.arguments[0]))
@@ -89,6 +89,9 @@ class IRCConnection:
                 event_handler(self)
         elif packet.command == "433" or packet.command == "437":
             self.set_nick("{}_".format(self.nick))
+
+            for event_handler in list(self.on_443):
+                event_handler(self)
         elif packet.command == "001":
             for event_handler in list(self.on_welcome):
                 event_handler(self)
@@ -96,7 +99,7 @@ class IRCConnection:
             for event_handler in list(self.on_join):
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
         elif packet.command == "PART":
-            for event_handler in list(self.on_leave):
+            for event_handler in list(self.on_part):
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
 
     def run_loop(self):
@@ -112,7 +115,7 @@ class IRCConnection:
                 self.status = False
                 for event_handler in list(self.on_disconnect):
                     event_handler(self)
-                if self.autoconnect == True:
+                if self.autoreconnect == True:
                     # reset the socket and reconnect
                     time.sleep(self.timeout)
                     self.reconnect()
@@ -131,6 +134,9 @@ class IRCConnection:
         if self.debug == True:
             print("-> {}".format(line));
         self.socket.send("{}\r\n".format(line).encode("utf-8"))
+
+
+
 
     def connect(self, server, port=6667, password=""):
         # store the data for reconnect
@@ -157,19 +163,28 @@ class IRCConnection:
         if self.user != "":
             self.send_line("USER {} 0 * :{}".format(self.user, self.name))
 
-    def send_message(self, to, message):
+
+
+
+
+
+
+    def send_msg(self, to, message):
         self.send_line("PRIVMSG {} :{}".format(to, message))
 
     def send_notice(self, to, message):
         self.send_line("NOTICE {} :{}".format(to, message))
 
-    def send_action_message(self, to, action):
+    def send_action(self, to, action):
         self.send_message(to, "\x01ACTION {}\x01".format(action))
 
-    def send_join(self, channel_name):
-        self.send_line("JOIN {}".format(channel_name))
+    def send_join(self, chan):
+        self.send_line("JOIN {}".format(chan))
 
-    def set_nick(self, nick):
+    def send_part(self, chan):
+        self.send_line("PART {}".format(chan))
+        
+    def send_nick(self, nick):
         self.nick = nick
         self.send_line("NICK {}".format(nick))
 
