@@ -10,9 +10,11 @@ class IRCPacket:
     def __init__(self):
         self.prefix = ""
         self.command = ""
+        self.line = ""
         self.arguments = []
 
     def parse(self, packet):
+        self.line = packet
         if packet.startswith(":"):
             self.prefix = packet[1:].split(" ")[0]
             packet = packet.split(" ", 1)[1]
@@ -63,7 +65,7 @@ class IRCConnection:
             event_handler(self, packet)
 
         if self.debug == True:
-            print("{}".format(packet.arguments))
+            print("{}".format(packet.line))
         if packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_public_message):
