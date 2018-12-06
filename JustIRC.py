@@ -43,7 +43,6 @@ class IRCConnection:
     def __init__(self, nick="", user="", name=""):
         # set default values
         self.debug = False
-        self.status = False
         self.autoreconnect = True
         self.timeout = 60
         
@@ -57,6 +56,15 @@ class IRCConnection:
             self.user = nick
         if nick != "" and name == "":
             self.name = nick
+
+        # internal use only variables
+        self.status = False
+        self.botserver = "";    # determined by 001 arg1
+        self.botnick = "";      # determined by 001 arg3
+        self.botuser = "";      # determined by WHO
+        self.bothost = "";      # determined by WHO
+        self.botmode = "";      # determined by MODE
+        self.botchan = [];      # determined by JOIN
 
         # set up default events
         self.on_packet_received = [];   # when a packet is received
@@ -85,7 +93,7 @@ class IRCConnection:
         if packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_text):
-                    event_handler(self, packet.arguments[0], packet.prefix.split("!")[0], packet.arguments[1])
+                    event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
             else:
                 for event_handler in list(self.on_query):
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
@@ -97,15 +105,22 @@ class IRCConnection:
         elif packet.command == "433" or packet.command == "437":
             self.send_nick("{}_".format(self.nick))
         elif packet.command == "001":
+            self.botserver = packet.prefix
+            self.botnick = packet.arguments[0]
+            
             for event_handler in list(self.on_welcome):
-                event_handler(self)
+                event_handler(self, packet.prefix)
+                # on_welcome(server)
         elif packet.command == "JOIN":
             for event_handler in list(self.on_join):
-                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0])
+                # on_join(nick, chan)
         elif packet.command == "PART":
             for event_handler in list(self.on_part):
-                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
+                # on_part(nick, chan, text)
         elif packet.command == "MODE":
+            print(packet.prefix, packet.arguments)
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_mode):
                     event_handler(self, packet.arguments[0], packet.prefix.split("!")[0], packet.arguments[1])
@@ -114,19 +129,28 @@ class IRCConnection:
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
         elif packet.command == "KICK":
             for event_handler in list(self.on_kick):
-                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1], packet.arguments[2])
+                # on_kick(nick, chan, knick, text)
         elif packet.command == "NICK":
+            if packet.prefix.split("!")[0] == self.botnick:
+                self.botnick = packet.arguments[0]
+
             for event_handler in list(self.on_nick):
-                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0])
+                # on_nick(bot, nick, newnick)
         elif packet.command == "NOTICE":
+            print(packet.prefix, packet.arguments)
             for event_handler in list(self.on_notice):
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
         elif packet.command == "QUIT":
             for event_handler in list(self.on_quit):
-                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0])
+                # on_quit(nick, text)
         elif packet.command == "TOPIC":
             for event_handler in list(self.on_topic):
-                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
+                # on_topic(nick, chan, topic)
+
 
     def run_loop(self):
         while self.status == True:
