@@ -114,14 +114,16 @@ class IRCConnection:
     def connect(self, server, port=6667, password=None):
         self.socket.connect((server, port))
         self.lines = self.read_lines()
+        for event_handler in list(self.on_connect):
+            event_handler(self)
+            
+        # put this after initial on_connect() for backwards compatibility
         if password != None:
             self.send_line("PASS {}".format(password))
         if self.nick != "":
             self.send_line("NICK {}".format(self.nick))
         if self.user != "":
             self.send_line("USER {} 0 * :{}".format(self.user, self.name))
-        for event_handler in list(self.on_connect):
-            event_handler(self)
 
     def send_line(self, line):
         if self.debug == True:
