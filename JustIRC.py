@@ -45,7 +45,7 @@ class IRCConnection:
         self.debug = False
         self.status = False
         self.autoreconnect = True
-        self.timeout = 5
+        self.timeout = 60
         
         # pull in nick/user/name from the function
         self.nick = nick
@@ -68,6 +68,13 @@ class IRCConnection:
         self.on_welcome = [];           # when the server shows the client as connected
         self.on_join = [];              # when someone joins a channel
         self.on_part = [];              # when someone parts a channel
+        self.on_mode = [];              # when a channel mode is changed
+        self.on_usermode = [];          # when the bot mode changes
+        self.on_kick = [];              # when someone is kicked from a channel
+        self.on_nick = [];              # when someone changes their nickname
+        self.on_notice = [];            # when someone notices the bot (or channel)
+        self.on_quit = [];              # when someone quits the network
+        self.on_topic = [];             # when a channel topic is changed
 
     def run_once(self):
         packet = parse_irc_packet(next(self.lines)) #Get next line from generator
@@ -88,10 +95,7 @@ class IRCConnection:
             for event_handler in list(self.on_ping):
                 event_handler(self)
         elif packet.command == "433" or packet.command == "437":
-            self.set_nick("{}_".format(self.nick))
-
-            for event_handler in list(self.on_443):
-                event_handler(self)
+            self.send_nick("{}_".format(self.nick))
         elif packet.command == "001":
             for event_handler in list(self.on_welcome):
                 event_handler(self)
@@ -100,6 +104,28 @@ class IRCConnection:
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
         elif packet.command == "PART":
             for event_handler in list(self.on_part):
+                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+        elif packet.command == "MODE":
+            if packet.arguments[0].startswith("#"):
+                for event_handler in list(self.on_mode):
+                    event_handler(self, packet.arguments[0], packet.prefix.split("!")[0], packet.arguments[1])
+            else:
+                for event_handler in list(self.on_usermode):
+                    event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
+        elif packet.command == "KICK":
+            for event_handler in list(self.on_kick):
+                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+        elif packet.command == "NICK":
+            for event_handler in list(self.on_nick):
+                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+        elif packet.command == "NOTICE":
+            for event_handler in list(self.on_notice):
+                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+        elif packet.command == "QUIT":
+            for event_handler in list(self.on_quit):
+                event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
+        elif packet.command == "TOPIC":
+            for event_handler in list(self.on_topic):
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
 
     def run_loop(self):
@@ -144,6 +170,7 @@ class IRCConnection:
         self.port = port
         self.password = password
         
+        # actually connect to the server
         self.reconnect()
         
         
