@@ -166,12 +166,14 @@ class IRCConnection:
     def send_action_message(self, to, action):
         self.send_message(to, "\x01ACTION {}\x01".format(action))
 
-    def join_channel(self, channel_name):
+    def send_join(self, channel_name):
         self.send_line("JOIN {}".format(channel_name))
 
     def set_nick(self, nick):
         self.nick = nick
         self.send_line("NICK {}".format(nick))
 
-    def send_user_packet(self, username):
-        self.send_line("USER {} 0 * :{}".format(username, username))
+    def send_user(self, username, realname=""):
+        if realname == "":
+            realname = username
+        self.send_line("USER {} 0 * :{}".format(username, realname))
