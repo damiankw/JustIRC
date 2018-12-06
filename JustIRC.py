@@ -73,7 +73,7 @@ class IRCConnection:
             event_handler(self, packet)
 
         if self.debug == True:
-            print("{}".format(packet.line))
+            print("<- {}".format(packet.line))
         if packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_public_message):
@@ -124,6 +124,8 @@ class IRCConnection:
             event_handler(self)
 
     def send_line(self, line):
+        if self.debug == True:
+            print("-> {}".format(line));
         self.socket.send("{}\r\n".format(line).encode("utf-8"))
 
     def send_message(self, to, message):
