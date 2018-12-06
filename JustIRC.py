@@ -107,11 +107,20 @@ class IRCConnection:
         elif packet.command == "001":
             self.botserver = packet.prefix
             self.botnick = packet.arguments[0]
+            self.send_line("WHO {}".format(self.botnick))
             
             for event_handler in list(self.on_welcome):
                 event_handler(self, packet.prefix)
                 # on_welcome(server)
+        elif packet.command == "432":
+            if packet.arguments[0] == self.botnick:
+                self.botuser = packet.arguments[2]
+                self.bothost = packet.arguments[3]
+        elif packet.command == "396":
+            self.bothost = packet.arguments[1]
         elif packet.command == "JOIN":
+            self.botchan.append(packet.arguments[0])
+            
             for event_handler in list(self.on_join):
                 event_handler(self, packet.prefix.split("!")[0], packet.arguments[0])
                 # on_join(nick, chan)
