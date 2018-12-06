@@ -1,5 +1,6 @@
 import socket
 import time
+import ssl
 
 def parse_irc_packet(packet):
     irc_packet = IRCPacket()
@@ -72,8 +73,6 @@ class IRCConnection:
         for event_handler in list(self.on_packet_received):
             event_handler(self, packet)
 
-        if self.debug == True:
-            print("<- {}".format(packet.line))
         if packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_public_message):
@@ -109,7 +108,14 @@ class IRCConnection:
             while "\n" in buff:
                 line, buff = buff.split("\n", 1)
                 line = line.replace("\r", "")
+                if self.debug == True:
+                    print("<- {}".format(line))
                 yield line
+
+    def send_line(self, line):
+        if self.debug == True:
+            print("-> {}".format(line));
+        self.socket.send("{}\r\n".format(line).encode("utf-8"))
 
     def connect(self, server, port=6667, password=None):
         self.socket.connect((server, port))
@@ -124,11 +130,6 @@ class IRCConnection:
             self.send_line("NICK {}".format(self.nick))
         if self.user != "":
             self.send_line("USER {} 0 * :{}".format(self.user, self.name))
-
-    def send_line(self, line):
-        if self.debug == True:
-            print("-> {}".format(line));
-        self.socket.send("{}\r\n".format(line).encode("utf-8"))
 
     def send_message(self, to, message):
         self.send_line("PRIVMSG {} :{}".format(to, message))
