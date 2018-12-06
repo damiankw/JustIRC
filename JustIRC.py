@@ -42,13 +42,21 @@ class IRCConnection:
     def __init__(self, nick="", user="", name=""):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        # default debug values
         self.debug = False
         
-        # set up default variables
+        # pull in nick/user/name from the function
         self.nick = nick
         self.user = user
         self.name = name
+        
+        # set the user/name if they aren't set but nick is, otherwise we might not actually connect (if scripter is lazy)
+        if nick != "" and user == "":
+            self.user = nick
+        if nick != "" and name == "":
+            self.name = nick
 
+        # set up default events
         self.on_connect = []
         self.on_public_message = []
         self.on_private_message = []
@@ -79,9 +87,6 @@ class IRCConnection:
             for event_handler in list(self.on_ping):
                 event_handler(self)
         elif packet.command == "433" or packet.command == "437":
-            #Command 433 is "Nick in use"
-            #Add underscore to the nick
-
             self.set_nick("{}_".format(self.nick))
         elif packet.command == "001":
             for event_handler in list(self.on_welcome):
@@ -105,9 +110,6 @@ class IRCConnection:
                 line, buff = buff.split("\n", 1)
                 line = line.replace("\r", "")
                 yield line
-
-    def set_debug(self, debug):
-        self.debug = debug
 
     def connect(self, server, port=6667, password=None):
         self.socket.connect((server, port))
