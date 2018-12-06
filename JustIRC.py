@@ -37,10 +37,15 @@ class IRCPacket:
             self.command = packet
 
 class IRCConnection:
-    def __init__(self):
+    def __init__(self, nick="", user="", name=""):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.nick = ""
+        self.debug = False
+        
+        # set up default variables
+        self.nick = nick
+        self.user = user
+        self.name = name
 
         self.on_connect = []
         self.on_public_message = []
@@ -57,6 +62,8 @@ class IRCConnection:
         for event_handler in list(self.on_packet_received):
             event_handler(self, packet)
 
+        if self.debug == True:
+            print("{}".format(packet.arguments))
         if packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_public_message):
@@ -97,9 +104,18 @@ class IRCConnection:
                 line = line.replace("\r", "")
                 yield line
 
-    def connect(self, server, port=6667):
+    def set_debug(self, debug):
+        self.debug = debug
+
+    def connect(self, server, port=6667, password=None):
         self.socket.connect((server, port))
         self.lines = self.read_lines()
+        if password != None:
+            self.send_line("PASS {}".format(password))
+        if self.nick != "":
+            self.send_line("NICK {}".format(self.nick))
+        if self.user != "":
+            self.send_line("USER {} 0 * :{}".format(self.user, self.name))
         for event_handler in list(self.on_connect):
             event_handler(self)
 
