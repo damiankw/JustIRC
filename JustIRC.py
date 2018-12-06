@@ -41,10 +41,11 @@ class IRCPacket:
 
 class IRCConnection:
     def __init__(self, nick="", user="", name=""):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # default debug values
+        # set default values
         self.debug = False
+        self.status = False
+        self.autoconnect = True
+        self.timeout = 5
         
         # pull in nick/user/name from the function
         self.nick = nick
@@ -59,6 +60,7 @@ class IRCConnection:
 
         # set up default events
         self.on_connect = []
+        self.on_disconnect = []
         self.on_public_message = []
         self.on_private_message = []
         self.on_ping = []
@@ -98,13 +100,26 @@ class IRCConnection:
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
 
     def run_loop(self):
-        while True:
+        while self.status == True:
             self.run_once()
 
     def read_lines(self):
         buff = ""
         while True:
             buff += self.socket.recv(1024).decode("utf-8", "replace")
+            # check for reconnection
+            if not buff:
+                self.status = False
+                for event_handler in list(self.on_disconnect):
+                    event_handler(self)
+                if self.autoconnect == True:
+                    # reset the socket and reconnect
+                    time.sleep(self.timeout)
+                    self.reconnect()
+                    
+                else:
+                    # send through a fake buffer to close the script
+                    buff = "\r\n"
             while "\n" in buff:
                 line, buff = buff.split("\n", 1)
                 line = line.replace("\r", "")
@@ -117,14 +132,25 @@ class IRCConnection:
             print("-> {}".format(line));
         self.socket.send("{}\r\n".format(line).encode("utf-8"))
 
-    def connect(self, server, port=6667, password=None):
-        self.socket.connect((server, port))
+    def connect(self, server, port=6667, password=""):
+        # store the data for reconnect
+        self.server = server
+        self.port = port
+        self.password = password
+        
+        self.reconnect()
+        
+        
+    def reconnect(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.server, self.port))
+        self.status = True
         self.lines = self.read_lines()
         for event_handler in list(self.on_connect):
             event_handler(self)
             
         # put this after initial on_connect() for backwards compatibility
-        if password != None:
+        if self.password != "":
             self.send_line("PASS {}".format(password))
         if self.nick != "":
             self.send_line("NICK {}".format(self.nick))
