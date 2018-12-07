@@ -57,15 +57,6 @@ class IRCConnection:
         if nick != "" and name == "":
             self.name = nick
 
-        # internal use only variables
-        self.status = False
-        self.botserver = "";    # determined by 001 arg1
-        self.botnick = "";      # determined by 001 arg3
-        self.botuser = "";      # determined by WHO
-        self.bothost = "";      # determined by WHO
-        self.botmode = "";      # determined by MODE
-        self.botchan = [];      # determined by JOIN
-
         # set up default events
         self.on_packet_received = [];   # when a packet is received
         self.on_connect = [];           # when the socket connects to the server
@@ -211,6 +202,16 @@ class IRCConnection:
         
         
     def reconnect(self):
+        # internal use only variables
+        self.status = False
+        self.botserver = "";    # determined by 001 arg1
+        self.botnick = "";      # determined by 001 arg3
+        self.botuser = "";      # determined by WHO
+        self.bothost = "";      # determined by WHO
+        self.botmode = "";      # determined by MODE
+        self.botchan = [];      # determined by JOIN
+
+
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.server, self.port))
         self.status = True
@@ -255,3 +256,9 @@ class IRCConnection:
         if realname == "":
             realname = username
         self.send_line("USER {} 0 * :{}".format(username, realname))
+
+    def send_quit(self, text):
+        self.send_line("QUIT :{}".format(text))
+        
+    def send_kick(self, chan, nick, text):
+        self.send_line("KICK {} {} :{}".format(chan, nick, text))
