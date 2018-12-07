@@ -61,15 +61,13 @@ class IRCConnection:
         self.on_packet_received = [];   # when a packet is received
         self.on_connect = [];           # when the socket connects to the server
         self.on_disconnect = [];        # when the socket disconnects from the server
+        self.on_action = [];            # when someone /me's
         self.on_text = [];              # when someone messages a channel
-        self.on_public_message = [];    # ^ as above - backwards compatibility only
         self.on_query = [];             # when someone messages the bot
-        self.on_private_message = [];   # ^ as above - backwards compatibility only
         self.on_ping = [];              # when the server sends ping
         self.on_welcome = [];           # when the server shows the client as connected
         self.on_join = [];              # when someone joins a channel
         self.on_part = [];              # when someone parts a channel
-        self.on_leave = [];             # ^ as above - backwards compatibility only
         self.on_mode = [];              # when a channel mode is changed
         self.on_usermode = [];          # when the bot mode changes
         self.on_kick = [];              # when someone is kicked from a channel
@@ -77,6 +75,8 @@ class IRCConnection:
         self.on_notice = [];            # when someone notices the bot (or channel)
         self.on_quit = [];              # when someone quits the network
         self.on_topic = [];             # when a channel topic is changed
+        self.on_ctcp = [];              # when a ctcp is received
+        self.on_ctcpreply = [];         # when a ctcp reply is received
 
     def run_once(self):
         packet = parse_irc_packet(next(self.lines)) #Get next line from generator
@@ -84,21 +84,34 @@ class IRCConnection:
         for event_handler in list(self.on_packet_received):
             event_handler(self, packet)
 
-        if packet.command == "PRIVMSG":
-            print("> {}".format(packet.arguments))
+        if packet.command == "PRIVMSG" and packet.arguments[1].startswith("\x01ACTION"): # /me does something
+            for event_handler in list(self.on_action):
+                event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1].split("\x01")[1][7:])
+                # on_action(nick, target, text)
+                
+        elif packet.command == "PRIVMSG" and packet.arguments[1].startswith("\x01"): # /ctcp <bot/chan> something something
+            for event_handler in list(self.on_ctcp):
+                event_handler(self, packet.arguments[1].split()[0], packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1].split("\x01")[1][len(packet.arguments[1].split()[0]):])
+                # on_ctcp(cmd, target, nick, text)
+        elif packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_text):
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
+                    # on_text(nick, chan, text)
             else:
                 for event_handler in list(self.on_query):
-                    event_handler(self, packet.prefix.split("!")[0], packet.arguments[1:])
+                    event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
+                    # on_query(nick, text)
+                    
         elif packet.command == "PING":
             self.send_line("PONG :{}".format(packet.arguments[0]))
 
             for event_handler in list(self.on_ping):
                 event_handler(self)
+                
         elif packet.command == "433" or packet.command == "437":
             self.send_nick("{}_".format(self.nick))
+            
         elif packet.command == "001":
             self.botserver = packet.prefix
             self.botnick = packet.arguments[0]
@@ -107,10 +120,12 @@ class IRCConnection:
             for event_handler in list(self.on_welcome):
                 event_handler(self)
                 # on_welcome(server)
+                
         elif packet.command == "352":
             if packet.arguments[0] == self.botnick:
                 self.botuser = packet.arguments[2]
                 self.bothost = packet.arguments[3]
+                
         elif packet.command == "396":
             self.bothost = packet.arguments[1]
         elif packet.command == "JOIN":
