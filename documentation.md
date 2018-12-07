@@ -40,8 +40,8 @@ the IRCConnection instance will act.
 
 | Variable | Valid data | Default | Description |
 | -------- | ---------- | ------- | ----------- |
-| debug    | True|False | False   | When set to True will output all data sent to/receieved from the server connection to the console. |
-| autoreconnect | True|False | True | When set to True will automatically try and reconnect to the server if disconnected. When set to false will quit the application. |
+| debug    | True\|False | False   | When set to True will output all data sent to/receieved from the server connection to the console. |
+| autoreconnect | True\|False | True | When set to True will automatically try and reconnect to the server if disconnected. When set to false will quit the application. |
 | timeout  | Integer    | 60      | Number of seconds to wait in between connection attempts. |
 
 
