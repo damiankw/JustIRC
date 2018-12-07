@@ -17,7 +17,6 @@ def on_welcome(bot):
     bot.send_join("#HelloTest")
 
 def on_text(bot, nick, chan, text):
-    print(">>>>>>> 'hello' in '{}'".format(text))
     if "hello" in text.lower():
         bot.send_msg(chan, "Hello there {}!".format(nick))
 
