@@ -12,13 +12,14 @@ reply to anyone who says "Hello".
 import JustIRC
 
 bot = JustIRC.IRCConnection("HelloWorldBot", "HelloBot", "I love greetings!")
-
+bot.debug = True
 def on_welcome(bot):
-    bot.join_channel("#HelloTest")
+    bot.send_join("#HelloTest")
 
-def on_text(bot, chan, nick, text):
+def on_text(bot, nick, chan, text):
+    print(">>>>>>> 'hello' in '{}'".format(text))
     if "hello" in text.lower():
-        bot.send_text(chan, "Hello there {}!".format(nick))
+        bot.send_msg(chan, "Hello there {}!".format(nick))
 
 bot.on_welcome.append(on_welcome)
 bot.on_text.append(on_text)
