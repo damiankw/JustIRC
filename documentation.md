@@ -28,8 +28,7 @@ bot.run_loop()
 ```
 
 ## 3. More examples
-You can find more example code in [the examples
-directory](https://github.com/gkbrk/JustIRC/examples).
+You can find more example code in [the examples directory](../../tree/master/examples).
 
 ## 4. The IRCConnection Class
 IRCConnection is the main class of this library. It handles the connection,
