@@ -34,6 +34,21 @@ You can find more example code in [the examples directory](../../tree/master/exa
 IRCConnection is the main class of this library. It handles the connection,
 parses and creates the packets and handles the events.
 
+### 4.1 Variables
+There are a number of variables which can be written to directly in order to manipulate how
+the IRCConnection instance will act.
+
+| Variable | Valid data | Default | Description |
+| -------- | ---------- | ------- | ----------- |
+| debug    | True|False | False   | When set to True will output all data sent to/receieved from the server connection to the console. |
+| autoreconnect | True|False | True | When set to True will automatically try and reconnect to the server if disconnected. When set to false will quit the application. |
+| timeout  | Integer    | 60      | Number of seconds to wait in between connection attempts. |
+
+
+### 4.2 Functions
+
+### 4.3 Events
+
 ### 4.1 IRCConnection.set\_nick(nick)
 Sets the nick of the bot. If the nick isn't available, the bot automatically
 adds an underscore to it and tries again.
