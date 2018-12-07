@@ -77,12 +77,14 @@ class IRCConnection:
         self.on_topic = [];             # when a channel topic is changed
         self.on_ctcp = [];              # when a ctcp is received
         self.on_ctcpreply = [];         # when a ctcp reply is received
+        self.on_352 = [];               # when /who responds
 
     def run_once(self):
         packet = parse_irc_packet(next(self.lines)) #Get next line from generator
 
         for event_handler in list(self.on_packet_received):
             event_handler(self, packet)
+            # on_packet_received(packet)
 
         if packet.command == "PRIVMSG" and packet.arguments[1].startswith("\x01ACTION"): # /me does something
             for event_handler in list(self.on_action):
@@ -93,6 +95,7 @@ class IRCConnection:
             for event_handler in list(self.on_ctcp):
                 event_handler(self, packet.arguments[1].split()[0], packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1].split("\x01")[1][len(packet.arguments[1].split()[0]):])
                 # on_ctcp(cmd, target, nick, text)
+                
         elif packet.command == "PRIVMSG":
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_text):
@@ -108,6 +111,7 @@ class IRCConnection:
 
             for event_handler in list(self.on_ping):
                 event_handler(self)
+                # on_pong()
                 
         elif packet.command == "433" or packet.command == "437":
             self.send_nick("{}_".format(self.nick))
@@ -125,6 +129,11 @@ class IRCConnection:
             if packet.arguments[0] == self.botnick:
                 self.botuser = packet.arguments[2]
                 self.bothost = packet.arguments[3]
+            
+            for event_handler in list(self.on_352):
+                event_handler(self, packet.arguments[1], packet.arguments[2], packet.arguments[3], packet.arguments[4], packet.arguments[5], packet.arguments[6], packet.arguments[7])
+#               on_352(self, chan, user, host, server, nick, away, name)
+            
                 
         elif packet.command == "396":
             self.bothost = packet.arguments[1]
