@@ -71,11 +71,14 @@ class IRCConnection:
         self.on_connect = [];           # when the socket connects to the server
         self.on_disconnect = [];        # when the socket disconnects from the server
         self.on_text = [];              # when someone messages a channel
+        self.on_public_message = [];    # ^ as above - backwards compatibility only
         self.on_query = [];             # when someone messages the bot
+        self.on_private_message = [];   # ^ as above - backwards compatibility only
         self.on_ping = [];              # when the server sends ping
         self.on_welcome = [];           # when the server shows the client as connected
         self.on_join = [];              # when someone joins a channel
         self.on_part = [];              # when someone parts a channel
+        self.on_leave = [];             # ^ as above - backwards compatibility only
         self.on_mode = [];              # when a channel mode is changed
         self.on_usermode = [];          # when the bot mode changes
         self.on_kick = [];              # when someone is kicked from a channel
@@ -95,7 +98,7 @@ class IRCConnection:
                 for event_handler in list(self.on_text):
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
             else:
-                for event_handler in list(self.on_query):
+                for event_handler in list(self.on_private_message):
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
         elif packet.command == "PING":
             self.send_line("PONG :{}".format(packet.arguments[0]))
@@ -110,7 +113,7 @@ class IRCConnection:
             self.send_line("WHO {}".format(self.botnick))
             
             for event_handler in list(self.on_welcome):
-                event_handler(self, packet.prefix)
+                event_handler(self)
                 # on_welcome(server)
         elif packet.command == "432":
             if packet.arguments[0] == self.botnick:

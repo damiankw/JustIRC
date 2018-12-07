@@ -15,7 +15,7 @@ def on_connect(bot):
     bot.send_nick("HelloBot")
     bot.send_user("HelloBot")
 
-def on_welcome(bot, server):
+def on_welcome(bot):
     bot.send_join("#HelloBotTest")
 
 def on_text(bot, nick, chan, text):
