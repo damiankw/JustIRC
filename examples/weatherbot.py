@@ -8,7 +8,7 @@ def on_connect(bot):
     bot.send_user("WeatherBot")
 
 def on_welcome(bot):
-    bot.send_join("#WeatherBotTest")
+    bot.send_join("#JustIRCTest")
 
 def on_text(bot, nick, chan, text):
     if len(text.split()) == 0:

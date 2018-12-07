@@ -16,7 +16,7 @@ def on_connect(bot):
     bot.send_user("HelloBot")
 
 def on_welcome(bot):
-    bot.send_join("#HelloBotTest")
+    bot.send_join("#JustIRCTest")
 
 def on_text(bot, nick, chan, text):
     if "hi" in text.lower() or "hello" in text.lower():

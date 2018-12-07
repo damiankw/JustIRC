@@ -9,7 +9,7 @@ def on_connect(bot):
     bot.send_user("TitleBotTest")
 
 def on_welcome(bot):
-    bot.send_join("#TitleBotTest")
+    bot.send_join("#JustIRCTest")
 
 def on_text(bot, nick, chan, text):
     for message_part in text.split():

@@ -7,7 +7,7 @@ def on_connect(bot):
     bot.send_user("ParrotBotGk")
 
 def on_welcome(bot):
-    bot.send_join("#TestParrotBotGk")
+    bot.send_join("#JustIRCTest")
 
 def on_text(bot, nick, chan, text):
     bot.send_msg(chan, text)
