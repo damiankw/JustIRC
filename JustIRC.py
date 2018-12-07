@@ -130,9 +130,9 @@ class IRCConnection:
                 self.botuser = packet.arguments[2]
                 self.bothost = packet.arguments[3]
             
-            for event_handler in list(self.on_352):
+            for event_handler in list(self.on_whoreply):
                 event_handler(self, packet.arguments[1], packet.arguments[2], packet.arguments[3], packet.arguments[4], packet.arguments[5], packet.arguments[6], packet.arguments[7])
-#               on_352(self, chan, user, host, server, nick, away, name)
+#               on_whoreply(self, chan, user, host, server, nick, away, name)
             
                 
         elif packet.command == "396":
