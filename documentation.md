@@ -36,7 +36,7 @@ parses and creates the packets and handles the events.
 
 ### 4.1 Option Variables
 There are a number of variables which can be written to directly in order to manipulate how
-the IRCConnection instance will act.
+the IRCConnection instance will act. Most of these are set when creating the bot and may differ from actual detail.
 
 | Variable      | Valid data  | Default | Description |
 | --------      | ----------  | ------- | ----------- |
@@ -46,12 +46,40 @@ the IRCConnection instance will act.
 | nick          | String      | ""      | The nickname of the bot, for use when connecting. |
 | user          | String      | ""      | The username of the bot, for use when connecting. |
 | name          | String      | ""      | The real name of the bot, for use when connecting. |
+| server        | String      | ""      | The server/ip the bot is connecting to. |
+| port          | String      | ""      | The port the bot is connecting to. |
+| password      | String      | ""      | The password to the connecting server. |
 
 
 ### 4.2 Output Variables
-These variables are used to store data about the connection, the bot, and other things a standard irc client/bot should hold.
-| Variable | 
+These variables are used to store data about the connection, the bot, and other things a standard irc client/bot should hold. These are the actual details.
+
+| Variable  | Data Type    | Description |
+| --------  | ---------    | ----------- |
+| botnick   | String       | The nickname of the bot. |
+| botuser   | String       | The username of the bot. |
+| bothost   | String       | The hostname of the bot. |
+| botname   | String       | The real name of the bot. |
+| botserver | String       | The server the bot is connected to. |
+| botmode   | String       | The current usermode of the bot. *(in development)* |
+| botchan   | String-Array | The channels the bot is currently on. |
+
 ### 4.3 Functions
+The functions are what do your core bot is made out of, these allow you to get the bot to do things. Arguments with a question mark in front of them are optional and have a default value of some kind.
+
+| Function    | Arguments                     | Description |
+| --------    | ---------                     | ----------- |
+| connect     | (server/ip, ?port, ?password) | Connects the bot to a new server, with an optional port and server password. |
+| send_line   | (data)                        | Sends data directly to the server. |
+| send_msg    | (target, message)             | Sends a message to a nick/chan. |
+| send_notice | (target, message)             | Sends a notice to a nick/chan. |
+| send_action | (target, message)             | Sends an action (/me) to a nick/chan. |
+| send_join   | (channel)                     | Joins a channel. |
+| send_part   | (channel, ?message)           | Part a channel with an optional message. |
+| send_nick   | (nickname)                    | Changes the bot nickname. *Can be used on_connect* |
+| send_user   | (username, ?realname)         | Sends a username and optional real name. *Can only be used on_connect* |
+| send_quit   | (?message)                    | Quits the network with an optional message. |
+| send_kick   | (chan, nick, ?message)        | Kicks a user from a channel with an optional message. |
 
 ### 4.4 Events
 
