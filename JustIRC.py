@@ -106,7 +106,7 @@ class IRCConnection:
             for event_handler in list(self.on_welcome):
                 event_handler(self)
                 # on_welcome(server)
-        elif packet.command == "432":
+        elif packet.command == "352":
             if packet.arguments[0] == self.botnick:
                 self.botuser = packet.arguments[2]
                 self.bothost = packet.arguments[3]
@@ -211,11 +211,13 @@ class IRCConnection:
         self.botmode = "";      # determined by MODE
         self.botchan = [];      # determined by JOIN
 
-
+        # connect the socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.server, self.port))
         self.status = True
         self.lines = self.read_lines()
+        
+        # on_connect user event
         for event_handler in list(self.on_connect):
             event_handler(self)
             
