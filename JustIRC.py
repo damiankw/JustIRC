@@ -77,7 +77,8 @@ class IRCConnection:
         self.on_topic = [];             # when a channel topic is changed
         self.on_ctcp = [];              # when a ctcp is received
         self.on_ctcpreply = [];         # when a ctcp reply is received
-        self.on_352 = [];               # when /who responds
+        self.on_whoreply = [];          # when /who responds
+        self.on_unspecified = [];       # when any other command is sent through unknown to JustiRC
 
     def run_once(self):
         packet = parse_irc_packet(next(self.lines)) #Get next line from generator
@@ -131,8 +132,8 @@ class IRCConnection:
                 self.bothost = packet.arguments[3]
             
             for event_handler in list(self.on_whoreply):
-                event_handler(self, packet.arguments[1], packet.arguments[2], packet.arguments[3], packet.arguments[4], packet.arguments[5], packet.arguments[6], packet.arguments[7])
-#               on_whoreply(self, chan, user, host, server, nick, away, name)
+                event_handler(self, packet.arguments[1], packet.arguments[2], packet.arguments[3], packet.arguments[4], packet.arguments[5], packet.arguments[6], packet.arguments[7].split()[0], packet.arguments[7][len(packet.arguments[7].split()[0])+1:])
+#               on_whoreply(self, chan, user, host, server, nick, away, hop, name)
             
                 
         elif packet.command == "396":
@@ -179,6 +180,9 @@ class IRCConnection:
                 event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
                 # on_topic(nick, chan, topic)
 
+        else:
+            for event_handler in list(self.on_unspecified):
+                event_handler(self, packet.command, packet.prefix, packet.arguments)
 
     def run_loop(self):
         while self.status == True:
