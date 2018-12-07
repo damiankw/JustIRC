@@ -22,7 +22,7 @@ class IRCPacket:
 
         if " " in packet:
             if " :" in packet:
-                last_argument = packet.split(" :")[1]
+                last_argument = " :".join(packet.split(" :")[1:])
                 packet = packet.split(" :")[0]
                 for splitted in packet.split(" "):
                     if not self.command:
@@ -85,12 +85,13 @@ class IRCConnection:
             event_handler(self, packet)
 
         if packet.command == "PRIVMSG":
+            print("> {}".format(packet.arguments))
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_text):
                     event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
             else:
-                for event_handler in list(self.on_private_message):
-                    event_handler(self, packet.prefix.split("!")[0], packet.arguments[1])
+                for event_handler in list(self.on_query):
+                    event_handler(self, packet.prefix.split("!")[0], packet.arguments[1:])
         elif packet.command == "PING":
             self.send_line("PONG :{}".format(packet.arguments[0]))
 
