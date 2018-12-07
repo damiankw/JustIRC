@@ -15,7 +15,7 @@ JustIRC is
 # Examples
 * [ParrotBot](examples/parrotbot.py) - A bot that replies to you with the same message, just like a parrot.  
 * [HelloBot](examples/hellobot.py) - A bot that greets people who say "Hi" or "Hello".  
-* [WeatherBot](examples/weatherbot.py) - A bot that responds to "!weather Istanbul" with the current weather. *currently broken due to weather system requiring API token*
+* [WeatherBot](examples/weatherbot.py) - A bot that responds to "!weather Istanbul" with the current weather. *Currently broken due to weather system requiring API token*
 * [TitleBot](examples/titlebot.py) - A bot that responds with the titles of URLs posted to the channel.
 * [WhoisBot](examples/whoisbot.py) - A bot which /whois's users on join to one channel and spits WHOIS information out in another.
 

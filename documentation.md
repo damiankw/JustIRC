@@ -11,22 +11,17 @@ reply to anyone who says "Hello".
 ```python
 import JustIRC
 
-bot = JustIRC.IRCConnection()
-
-def on_connect(bot):
-    bot.set_nick("HelloWorldBot")
-    bot.send_user_packet("HelloBot")
+bot = JustIRC.IRCConnection("HelloWorldBot", "HelloBot", "I love greetings!")
 
 def on_welcome(bot):
     bot.join_channel("#HelloTest")
 
-def on_message(bot, channel, sender, message):
-    if "hello" in message.lower():
-        bot.send_message(channel, "Hello there {}!".format(sender))
+def on_text(bot, chan, nick, text):
+    if "hello" in text.lower():
+        bot.send_text(chan, "Hello there {}!".format(nick))
 
-bot.on_connect.append(on_connect)
 bot.on_welcome.append(on_welcome)
-bot.on_public_message.append(on_message)
+bot.on_text.append(on_text)
 
 bot.connect("irc.freenode.net")
 bot.run_loop()
