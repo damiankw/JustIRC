@@ -82,37 +82,28 @@ The functions are what do your core bot is made out of, these allow you to get t
 | send_kick   | (chan, nick, ?message)        | Kicks a user from a channel with an optional message. |
 
 ### 4.4 Events
+There are multiple events that can be used for different purposes. Append your own functions to different events to create your bot.
 
-### 4.1 IRCConnection.set\_nick(nick)
-Sets the nick of the bot. If the nick isn't available, the bot automatically
-adds an underscore to it and tries again.
-
-### 4.2 IRCConnection.send\_user\_packet(name)
-Should be called after set\_nick(), it's usually fine to use the same nick for
-both commands.
-
-### 4.3 IRCConnection.join\_channel(channel\_name)
-Joins a channel. Can be used to join multiple, comma-seperated channels.
-
-### 4.4 IRCConnection.send\_message(to, message)
-Used to send an IRC message. The **to** argument can be a channel name or
-another nick. The message is a string.
-
-### 4.5 IRCConnection.send\_notice(to, message)
-Sends a NOTICE message. The message is a string.
-
-### 4.6 IRCConnection.send\_action\_message(channel, action)
-Sends an action message (/me) to a channel.
-
-## 5. Events
-There are multiple events that can be used for different purposes. Here's a list
-of events and their descriptions.
-
-1. on\_connect: Called after the client connects to the server.
-2. on\_welcome: Called after the server sends the welcome packet.
-3. on\_public\_message: Called when someone sends a message to a channel.
-4. on\_private\_message: Called when someone sends a private message to the bot.
-5. on\_ping: Called when the bot gets a ping packet from the server.
-6. on\_join: Called when someone joins a channel.
-7. on\_leave: Called when someone leaves a channel.
-8. on\_packet\_received: Called when ANY packet is received. Useful for implementing custom packets.
+| Event              | Arguments | Description |
+| -----              | --------- | ----------- |
+| on_packet_received | (data) | When any packet is received (raw data) |
+| on_connect         | () | When the socket connects to the server |
+| on_disconnect      | () | When the socket disconnects from the server |
+| on_action          | (nick, target, message) | When someone /me's |
+| on_text            | (nick, chan, message) | When someone messages a channel |
+| on_query           | (nick, message) | When someone messages the bot |
+| on_ping            | () | When the server sends ping |
+| on_welcome         | () | When the server shows the client as connected |
+| on_join            | (nick, chan) | When someone joins a channel |
+| on_part            | (nick, chan, message) | When someone parts a channel |
+| on_mode            | (nick, chan, mode, args) | When a channel mode is changed |
+| on_usermode        | (mode, args) | When the bot mode changes |
+| on_kick            | (nick, chan, knick, message) | When someone is kicked from a channel |
+| on_nick            | (nick, newnick) | When someone changes their nickname |
+| on_notice          | (nick, target, message) | When someone notices the bot (or channel) |
+| on_quit            | (nick, message) | When someone quits the network |
+| on_topic           | (nick, chan, topic) | When a channel topic is changed |
+| on_ctcp            | (command, target, nick, message) | When a ctcp is received |
+| on_ctcpreply       | (command, nick, message) | When a ctcp reply is received |
+| on_whoreply        | (channel, username, hostname, server, nick, away status, hops, realname) | When /who responds |
+| on_unspecified     | (command, server/user, [array]arguments) | When any other command is sent through unknown to JustiRC |
