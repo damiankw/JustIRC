@@ -149,7 +149,7 @@ class IRCConnection:
                 event_handler(self, packet.prefix.split("!")[0], packet.arguments[0], packet.arguments[1])
                 # on_part(nick, chan, text)
         elif packet.command == "MODE":
-            print(packet.prefix, packet.arguments)
+            #print(packet.prefix, packet.arguments)
             if packet.arguments[0].startswith("#"):
                 for event_handler in list(self.on_mode):
                     event_handler(self, packet.arguments[0], packet.prefix.split("!")[0], packet.arguments[1])
@@ -168,7 +168,7 @@ class IRCConnection:
                 event_handler(self, packet.prefix.split("!")[0], packet.arguments[0])
                 # on_nick(bot, nick, newnick)
         elif packet.command == "NOTICE":
-            print(packet.prefix, packet.arguments)
+            #print(packet.prefix, packet.arguments)
             for event_handler in list(self.on_notice):
                 event_handler(self, packet.arguments[0], packet.prefix.split("!")[0])
         elif packet.command == "QUIT":
